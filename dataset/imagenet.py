@@ -52,6 +52,13 @@ def _build_lmdb_dataset(
             root, None, None, None)
         torch.save(data_set, pt_path, pickle_protocol=4)
         log.info('[Dataset] Saving pt to {}'.format(pt_path))
+        log.info('[Dataset] Building lmdb to {}'.format(lmdb_path))
+        env = lmdb.open(lmdb_path, map_size=1e12)
+        with env.begin(write=True) as txn:
+            for _path, class_index in data_set.imgs:
+                with open(_path, 'rb') as f:
+                    data = f.read()
+                txn.put(_path.encode('ascii'), data)
 
     data_set.lmdb_data = lmdb.open(
         lmdb_path, readonly=True, max_readers=1, lock=False, readahead=False,
