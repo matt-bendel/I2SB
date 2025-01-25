@@ -268,8 +268,8 @@ class Runner(object):
 
         x1 = img_corrupt.to(opt.device)
         b, *xdim = x1.shape
-        pred_x0s = torch.zeros(b, 2, 10, *xdim).unsqueeze(1).repeat(1, 8, 1, 1, 1, 1).to(x1.device)
-        xs = torch.zeros(b, 2, 10, *xdim).unsqueeze(1).repeat(1, 8, 1, 1, 1, 1).to(x1.device)
+        pred_x0s = torch.zeros(b, 8, 10, *xdim).to(x1.device)
+        xs = torch.zeros(b, 8, 10, *xdim).to(x1.device)
 
         for i in range(8):
             xs_tmp, pred_x0s_tmp = self.ddpm_sampling(
