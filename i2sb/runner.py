@@ -157,9 +157,6 @@ class Runner(object):
         train_loader = util.setup_loader(train_dataset, opt.microbatch)
         val_loader   = util.setup_loader(val_dataset,   opt.microbatch)
 
-        self.accuracy = torchmetrics.Accuracy().to(opt.device)
-        self.resnet = build_resnet50().to(opt.device)
-
         net.train()
         n_inner_loop = opt.batch_size // (opt.global_size * opt.microbatch)
         for it in range(opt.num_itr):
@@ -298,11 +295,6 @@ class Runner(object):
         def log_image(tag, img, nrow=10):
             self.writer.add_image(it, tag, tu.make_grid((img+1)/2, nrow=nrow)) # [1,1] -> [0,1]
 
-        def log_accuracy(tag, img):
-            pred = self.resnet(img.to(opt.device)) # input range [-1,1]
-            accu = self.accuracy(pred, y.to(opt.device))
-            self.writer.add_scalar(it, tag, accu)
-
         psnr_1 = peak_signal_noise_ratio(xs[:, 0, 0, ...], img_clean).cpu().numpy()
         psnr_8 = peak_signal_noise_ratio(torch.mean(xs[:, :, 0, ...], dim=1), img_clean).cpu().numpy()
 
@@ -318,11 +310,6 @@ class Runner(object):
         log_image("image/recon",   img_recon)
         log_image("debug/pred_clean_traj", pred_x0s.reshape(-1, *xdim), nrow=len_t)
         log_image("debug/recon_traj",      xs.reshape(-1, *xdim),      nrow=len_t)
-
-        log.info("Logging accuracies ...")
-        log_accuracy("accuracy/clean",   img_clean)
-        log_accuracy("accuracy/corrupt", img_corrupt)
-        log_accuracy("accuracy/recon",   img_recon)
 
         log.info(f"========== Evaluation finished: iter={it} ==========")
         torch.cuda.empty_cache()
