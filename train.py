@@ -18,6 +18,7 @@ from datetime import datetime
 
 import numpy as np
 import torch
+import torch.multiprocessing as mp
 from torch.multiprocessing import Process
 
 from logger import Logger
@@ -143,6 +144,7 @@ def main(opt):
     log.info("Finish!")
 
 if __name__ == '__main__':
+    mp.set_start_method('spawn')
     opt = create_training_options()
 
     assert opt.corrupt is not None
