@@ -15,6 +15,7 @@ import torch
 import torchvision.datasets as datasets
 from torchvision import transforms
 from torch.utils.data import Dataset
+from functools import partial
 
 def lmdb_loader(path, lmdb_data):
     # In-memory binary streams
@@ -23,6 +24,9 @@ def lmdb_loader(path, lmdb_data):
         bytedata = txn.get(path.encode())
     img = Image.open(io.BytesIO(bytedata))
     return img.convert('RGB')
+
+def ds_loader(loader, lmdb_data, path):
+    return loader(path, lmdb_data)
 
 def _build_lmdb_dataset(
         root, log, transform=None, target_transform=None,
@@ -67,7 +71,8 @@ def _build_lmdb_dataset(
     data_set.samples = data_set.imgs
     data_set.transform = transform
     data_set.target_transform = target_transform
-    data_set.loader = lambda path: loader(path, data_set.lmdb_data)
+
+    data_set.loader = partial(ds_loader, loader, data_set.lmdb_data)
 
     return data_set
 
