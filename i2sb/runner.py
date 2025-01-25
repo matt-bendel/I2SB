@@ -13,6 +13,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import AdamW, lr_scheduler
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torchmetrics.functional import peak_signal_noise_ratio
 
 from torch_ema import ExponentialMovingAverage
 import torchvision.utils as tu
@@ -24,8 +25,6 @@ from evaluation import build_resnet50
 from . import util
 from .network import Image256Net
 from .diffusion import Diffusion
-
-from ipdb import set_trace as debug
 
 def build_optimizer_sched(opt, net, log):
 
@@ -85,6 +84,7 @@ class Runner(object):
 
         noise_levels = torch.linspace(opt.t0, opt.T, opt.interval, device=opt.device) * opt.interval
         self.net = Image256Net(log, noise_levels=noise_levels, use_fp16=opt.use_fp16, cond=opt.cond_x1)
+        self.beta_std = 1.
         self.ema = ExponentialMovingAverage(self.net.parameters(), decay=opt.ema)
 
         if opt.load:
@@ -175,14 +175,20 @@ class Runner(object):
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                 label = self.compute_label(step, x0, xt)
 
-                pred = net(xt, step, cond=cond)
+                gens = torch.zeros_like(xt).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(xt.device)
+                for z in range(2):
+                    zi = torch.randn_like(xt)
+                    gens[:, z, :, :, :] = pred = net(torch.cat([xt, zi], dim=1), step, cond=cond)
+
                 assert xt.shape == label.shape == pred.shape
 
                 if mask is not None:
                     pred = mask * pred
                     label = mask * label
 
-                loss = F.mse_loss(pred, label)
+                avg_recon = torch.mean(gens, dim=1)
+                loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
+            2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean()
                 loss.backward()
 
             optimizer.step()
@@ -265,10 +271,17 @@ class Runner(object):
         img_clean, img_corrupt, mask, y, cond = self.sample_batch(opt, val_loader, corrupt_method)
 
         x1 = img_corrupt.to(opt.device)
+        b, *xdim = x1.shape
+        pred_x0s = torch.zeros(b, 2, 10, *xdim).unsqueeze(1).repeat(1, 8, 1, 1, 1, 1).to(x1.device)
+        xs = torch.zeros(b, 2, 10, *xdim).unsqueeze(1).repeat(1, 8, 1, 1, 1, 1).to(x1.device)
 
-        xs, pred_x0s = self.ddpm_sampling(
-            opt, x1, mask=mask, cond=cond, clip_denoise=opt.clip_denoise, verbose=opt.global_rank==0
-        )
+        for i in range(8):
+            xs_tmp, pred_x0s_tmp = self.ddpm_sampling(
+                opt, x1, mask=mask, cond=cond, clip_denoise=opt.clip_denoise, verbose=opt.global_rank==0
+            )
+
+            xs[:, i, :, :, :, :] = xs_tmp
+            pred_x0s[:, i, :, :, :, :] = pred_x0s_tmp
 
         log.info("Collecting tensors ...")
         img_clean   = all_cat_cpu(opt, log, img_clean)
@@ -291,8 +304,16 @@ class Runner(object):
             accu = self.accuracy(pred, y.to(opt.device))
             self.writer.add_scalar(it, tag, accu)
 
+        psnr_1 = peak_signal_noise_ratio(xs[:, 0, 0, ...], img_clean).cpu().numpy()
+        psnr_8 = peak_signal_noise_ratio(torch.mean(xs[:, :, 0, ...], dim=1), img_clean).cpu().numpy()
+
+        psnr_diff = (psnr_1 + 2.5) - psnr_8
+
+        mu_0 = 2e-2
+        self.beta_std += mu_0 * psnr_diff
+
         log.info("Logging images ...")
-        img_recon = xs[:, 0, ...]
+        img_recon = xs[:, 0, 0, ...]
         log_image("image/clean",   img_clean)
         log_image("image/corrupt", img_corrupt)
         log_image("image/recon",   img_recon)
