@@ -169,7 +169,7 @@ class Runner(object):
                 # ===== compute loss =====
                 step = torch.randint(0, opt.interval, (x0.shape[0],))
 
-                gens = torch.zeros_like(x0).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(xt.device)
+                gens = torch.zeros_like(x0).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(x0.device)
                 for z in range(2):
                     xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                     label = self.compute_label(step, x0, xt)
