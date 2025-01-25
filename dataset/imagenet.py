@@ -44,23 +44,17 @@ def _build_lmdb_dataset(
         root + '_faster_imagefolder.lmdb')
 
     data_set = datasets.ImageFolder(
-        "/storage/ImageNet_full/val/", None, None, None) # Does this matter?
+        root, None, None, None)
 
-    # if os.path.isfile(pt_path) and os.path.isdir(lmdb_path):
-    #     log.info('[Dataset] Loading pt {} and lmdb {}'.format(pt_path, lmdb_path))
-    #     data_set = torch.load(pt_path)
-    # else:
-    #     data_set = datasets.ImageFolder(
-    #         root, None, None, None)
-    #     torch.save(data_set, pt_path, pickle_protocol=4)
-    #     log.info('[Dataset] Saving pt to {}'.format(pt_path))
-    #     log.info('[Dataset] Building lmdb to {}'.format(lmdb_path))
-    #     env = lmdb.open(lmdb_path, map_size=1e12)
-    #     with env.begin(write=True) as txn:
-    #         for _path, class_index in data_set.imgs:
-    #             with open(_path, 'rb') as f:
-    #                 data = f.read()
-    #             txn.put(_path.encode('ascii'), data)
+    if os.path.isfile(pt_path) and os.path.isdir(lmdb_path):
+        log.info('[Dataset] Loading pt {} and lmdb {}'.format(pt_path, lmdb_path))
+        data_set = torch.load(pt_path)
+    else:
+        data_set = datasets.ImageFolder(
+            root, None, None, None)
+        torch.save(data_set, pt_path, pickle_protocol=4)
+        log.info('[Dataset] Saving pt to {}'.format(pt_path))
+
     data_set.lmdb_data = lmdb.open(
         lmdb_path, readonly=True, max_readers=1, lock=False, readahead=False,
         meminit=False)
