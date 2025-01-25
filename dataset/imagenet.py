@@ -16,8 +16,6 @@ import torchvision.datasets as datasets
 from torchvision import transforms
 from torch.utils.data import Dataset
 
-from ipdb import set_trace as debug
-
 def lmdb_loader(path, lmdb_data):
     # In-memory binary streams
     # print(path)
