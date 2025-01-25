@@ -71,13 +71,15 @@ def _build_lmdb_dataset(
 
     return data_set
 
+def lam_func(t):
+    return t * 2 - 1
 def build_train_transform(image_size):
     return transforms.Compose([
         transforms.Resize(image_size),
         transforms.CenterCrop(image_size),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.ToTensor(),
-        transforms.Lambda(lambda t: (t * 2) - 1) # [0,1] --> [-1, 1]
+        transforms.Lambda(lam_func) # [0,1] --> [-1, 1]
     ])
 
 def build_test_transform(image_size):
