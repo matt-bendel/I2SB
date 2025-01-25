@@ -24,7 +24,6 @@ from evaluation import fid_util
 from i2sb import download
 
 import colored_traceback.always
-from ipdb import set_trace as debug
 
 RESULT_DIR = Path("results")
 ADM_IMG256_FID_TRAIN_REF_CKPT = "https://openaipublic.blob.core.windows.net/diffusion/jul-2021/ref_batches/imagenet/256/VIRTUAL_imagenet256_labeled.npz"

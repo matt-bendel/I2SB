@@ -19,7 +19,6 @@ import torch
 
 from pathlib import Path
 import gdown
-from ipdb import set_trace as debug
 
 FREEFORM_URL = "https://drive.google.com/file/d/1-5YRGsekjiRKQWqo0BV5RVQu0bagc12w/view?usp=share_link"
 

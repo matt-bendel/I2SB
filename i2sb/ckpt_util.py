@@ -24,7 +24,6 @@ from argparse import Namespace
 from pathlib import Path
 from easydict import EasyDict as edict
 
-from ipdb import set_trace as debug
 
 ADM_IMG256_UNCOND_CKPT = "https://openaipublic.blob.core.windows.net/diffusion/jul-2021/256x256_diffusion_uncond.pt"
 I2SB_IMG256_UNCOND_PKL = "256x256_diffusion_uncond_fixedsigma.pkl"

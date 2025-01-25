@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from collections import OrderedDict
 from torchvision.models import resnet50
 
-from ipdb import set_trace as debug
 
 class ImageNormalizer(torch.nn.Module):
 

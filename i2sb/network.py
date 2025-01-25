@@ -19,7 +19,6 @@ from .ckpt_util import (
     I2SB_IMG256_COND_CKPT,
 )
 
-from ipdb import set_trace as debug
 
 class Image256Net(torch.nn.Module):
     def __init__(self, log, noise_levels, use_fp16=False, cond=False, pretrained_adm=True, ckpt_dir="data/"):

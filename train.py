@@ -27,7 +27,6 @@ from dataset import imagenet
 from i2sb import Runner, download_ckpt
 
 import colored_traceback.always
-from ipdb import set_trace as debug
 
 RESULT_DIR = Path("results")
 
