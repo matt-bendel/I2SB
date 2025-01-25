@@ -144,7 +144,7 @@ def main(opt):
     log.info("Finish!")
 
 if __name__ == '__main__':
-    # mp.set_start_method('spawn')
+    mp.set_start_method('spawn')
     opt = create_training_options()
 
     assert opt.corrupt is not None
