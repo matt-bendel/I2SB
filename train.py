@@ -83,7 +83,7 @@ def create_training_options():
     parser.add_argument("--log-dir",        type=Path,  default=".log",      help="path to log std outputs and writer data")
     parser.add_argument("--log-writer",     type=str,   default=None,        help="log writer: can be tensorbard, wandb, or None")
     parser.add_argument("--wandb-api-key",  type=str,   default=None,        help="unique API key of your W&B account; see https://wandb.ai/authorize")
-    parser.add_argument("--wandb-user",     type=str,   default=None,        help="user name of your W&B account")
+    parser.add_argument("--wandb-user",     type=str,   default="bendel-8",        help="user name of your W&B account")
 
     opt = parser.parse_args()
 

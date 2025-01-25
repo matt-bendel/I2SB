@@ -172,13 +172,12 @@ class Runner(object):
                 # ===== compute loss =====
                 step = torch.randint(0, opt.interval, (x0.shape[0],))
 
-                xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
-                label = self.compute_label(step, x0, xt)
-
-                gens = torch.zeros_like(xt).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(xt.device)
+                gens = torch.zeros_like(x0).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(xt.device)
                 for z in range(2):
-                    zi = torch.randn_like(xt)
-                    gens[:, z, :, :, :] = pred = net(torch.cat([xt, zi], dim=1), step, cond=cond)
+                    xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
+                    label = self.compute_label(step, x0, xt)
+
+                    gens[:, z, :, :, :] = pred = net(xt, step, cond=cond)
 
                 assert xt.shape == label.shape == pred.shape
 

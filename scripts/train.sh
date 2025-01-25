@@ -18,3 +18,7 @@ python train.py --n-gpu-per-node $N_GPU --beta-max 1.0 --ot-ode --corrupt blur-g
 python train.py --n-gpu-per-node $N_GPU --beta-max 1.0 --ot-ode --corrupt inpaint-center
 python train.py --n-gpu-per-node $N_GPU --beta-max 1.0 --ot-ode --corrupt inpaint-freeform1020
 python train.py --n-gpu-per-node $N_GPU --beta-max 1.0 --ot-ode --corrupt inpaint-freeform2030
+
+# Step 1: Download ImageNet Training (Task 1 & 2)
+# Step 2: Download ImageNet Validation
+# Step 3: Preprocess to RESxRES
