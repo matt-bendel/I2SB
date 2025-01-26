@@ -174,13 +174,7 @@ class Runner(object):
                     xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                     label = self.compute_label(step, x0, xt)
 
-                    gens[:, z, :, :, :] = pred = net(xt, step, cond=cond)
-
-                assert xt.shape == label.shape == pred.shape
-
-                if mask is not None:
-                    pred = mask * pred
-                    label = mask * label
+                    gens[:, z, :, :, :] = self.compute_pred_x0(step, xt, net(xt, step, cond=cond), clip_denoise=opt.clip_denoise)
 
                 avg_recon = torch.mean(gens, dim=1)
                 loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
