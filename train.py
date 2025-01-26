@@ -69,7 +69,7 @@ def create_training_options():
     parser.add_argument("--add-x1-noise",   action="store_true",             help="add noise to conditional network")
 
     # --------------- optimizer and loss ---------------
-    parser.add_argument("--batch-size",     type=int,   default=256)
+    parser.add_argument("--batch-size",     type=int,   default=128)
     parser.add_argument("--microbatch",     type=int,   default=2,           help="accumulate gradient over microbatch until full batch-size")
     parser.add_argument("--num-itr",        type=int,   default=1000000,     help="training iteration")
     parser.add_argument("--lr",             type=float, default=5e-5,        help="learning rate")

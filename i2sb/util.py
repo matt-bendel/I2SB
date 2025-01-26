@@ -17,7 +17,7 @@ class DataLoaderX(DataLoader):
     def __iter__(self):
         return BackgroundGenerator(super().__iter__())
 
-def setup_loader(dataset, batch_size, num_workers=0):
+def setup_loader(dataset, batch_size, num_workers=4):
     loader = DataLoaderX(
         dataset,
         batch_size=batch_size,
