@@ -287,7 +287,7 @@ class Runner(object):
         xs          = all_cat_cpu(opt, log, xs)
         pred_x0s    = all_cat_cpu(opt, log, pred_x0s)
 
-        batch, len_t, *xdim = xs.shape
+        batch, _, len_t, *deprecated = xs.shape
         assert img_clean.shape == img_corrupt.shape == (batch, *xdim)
         assert xs.shape == pred_x0s.shape
         assert y.shape == (batch,)
