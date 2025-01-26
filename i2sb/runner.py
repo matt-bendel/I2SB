@@ -265,13 +265,14 @@ class Runner(object):
         log.info(f"========== Evaluation started: iter={it} ==========")
 
         img_clean, img_corrupt, mask, y, cond = self.sample_batch(opt, val_loader, corrupt_method)
-
+        num_valid = 4
+        expected_gain = 2.04
         x1 = img_corrupt.to(opt.device)
         b, *xdim = x1.shape
-        pred_x0s = torch.zeros(b, 8, 10, *xdim).to(x1.device)
-        xs = torch.zeros(b, 8, 10, *xdim).to(x1.device)
+        pred_x0s = torch.zeros(b, num_valid, 10, *xdim).to(x1.device)
+        xs = torch.zeros(b, num_valid, 10, *xdim).to(x1.device)
 
-        for i in range(8):
+        for i in range(4):
             xs_tmp, pred_x0s_tmp = self.ddpm_sampling(
                 opt, x1, mask=mask, cond=cond, clip_denoise=opt.clip_denoise, verbose=opt.global_rank==0
             )
@@ -298,7 +299,7 @@ class Runner(object):
         psnr_1 = peak_signal_noise_ratio(xs[:, 0, 0, ...], img_clean).cpu().numpy()
         psnr_8 = peak_signal_noise_ratio(torch.mean(xs[:, :, 0, ...], dim=1), img_clean).cpu().numpy()
 
-        psnr_diff = (psnr_1 + 2.5) - psnr_8
+        psnr_diff = (psnr_1 + expected_gain) - psnr_8
 
         mu_0 = 2e-2
         self.beta_std += mu_0 * psnr_diff
