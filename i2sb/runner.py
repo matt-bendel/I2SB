@@ -172,7 +172,6 @@ class Runner(object):
                 gens = torch.zeros_like(x0).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(x0.device)
                 for z in range(2):
                     xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
-                    label = self.compute_label(step, x0, xt)
 
                     gens[:, z, :, :, :] = self.compute_pred_x0(step, xt, net(xt, step, cond=cond), clip_denoise=opt.clip_denoise)
 
@@ -292,6 +291,9 @@ class Runner(object):
 
         psnr_1 = peak_signal_noise_ratio(xs[:, 0, 0, ...], img_clean).cpu().numpy()
         psnr_8 = peak_signal_noise_ratio(torch.mean(xs[:, :, 0, ...], dim=1), img_clean).cpu().numpy()
+
+        self.writer.add_scalar(it, 'psnr_1', psnr_1)
+        self.writer.add_scalar(it, 'psnr_4', psnr_8)
 
         psnr_diff = (psnr_1 + expected_gain) - psnr_8
 
