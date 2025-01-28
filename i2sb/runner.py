@@ -84,7 +84,7 @@ class Runner(object):
 
         noise_levels = torch.linspace(opt.t0, opt.T, opt.interval, device=opt.device) * opt.interval
         self.net = Image256Net(log, noise_levels=noise_levels, use_fp16=opt.use_fp16, cond=opt.cond_x1)
-        self.beta_std = 1.
+        self.beta_std = 0.5
         self.ema = ExponentialMovingAverage(self.net.parameters(), decay=opt.ema)
 
         if opt.load:
