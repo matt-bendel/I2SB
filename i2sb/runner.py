@@ -190,9 +190,11 @@ class Runner(object):
                     pred2 = mask * pred2
                     label2 = mask * label2
 
-                loss = (F.mse_loss(pred1, label1) + F.mse_loss(pred2, label2)) / 2 # Score match loss on residual
-                loss += F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
+                mse_loss = (F.mse_loss(pred1, label1) + F.mse_loss(pred2, label2)) / 2 # Score match loss on residual
+                rcgan_loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
                     2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
+
+                loss = mse_loss + rcgan_loss
 
                 loss.backward()
 
@@ -201,14 +203,16 @@ class Runner(object):
             if sched is not None: sched.step()
 
             # -------- logging --------
-            log.info("train_it {}/{} | lr:{} | loss:{}".format(
+            log.info("train_it {}/{} | lr:{} | mse_loss:{} | rcgan_loss:{}".format(
                 1+it,
                 opt.num_itr,
                 "{:.2e}".format(optimizer.param_groups[0]['lr']),
-                "{:+.4f}".format(loss.item()),
+                "{:+.4f}".format(mse_loss.item()),
+                "{:+.4f}".format(rcgan_loss.item()),
             ))
             if it % 10 == 0:
-                self.writer.add_scalar(it, 'loss', loss.detach())
+                self.writer.add_scalar(it, 'mse_loss', mse_loss.detach())
+                self.writer.add_scalar(it, 'rcgan_loss', rcgan_loss.detach())
 
             if it % 5000 == 0:
                 if opt.global_rank == 0:
