@@ -258,14 +258,14 @@ class Runner(object):
         log.info(f"========== Evaluation started: iter={it} ==========")
 
         img_clean, img_corrupt, mask, y, cond = self.sample_batch(opt, val_loader, corrupt_method)
-        num_valid = 4
-        expected_gain = 2.04
+        num_valid = 8
+        expected_gain = 2.5
         x1 = img_corrupt.to(opt.device)
         b, *xdim = x1.shape
-        pred_x0s = torch.zeros(b, num_valid, 10, *xdim).to(x1.device)
-        xs = torch.zeros(b, num_valid, 10, *xdim).to(x1.device)
+        pred_x0s = torch.zeros(b, 1, 10, *xdim).to(x1.device)
+        xs = torch.zeros(b, 1, 10, *xdim).to(x1.device)
 
-        for i in range(4):
+        for i in range(1):
             xs_tmp, pred_x0s_tmp = self.ddpm_sampling(
                 opt, x1, mask=mask, cond=cond, clip_denoise=opt.clip_denoise, verbose=opt.global_rank==0
             )
@@ -273,7 +273,23 @@ class Runner(object):
             xs[:, i, :, :, :, :] = xs_tmp
             pred_x0s[:, i, :, :, :, :] = pred_x0s_tmp
 
+        with self.ema.average_parameters():
+            self.net.eval()
+
+            step = torch.randint(0, opt.interval, (img_clean.shape[0],))
+            gens = torch.zeros_like(img_clean).unsqueeze(1).repeat(1, num_valid, 1, 1, 1).to(img_clean.device)
+            for z in range(num_valid):
+                xt = self.diffusion.q_sample(step, img_clean, img_corrupt, ot_ode=opt.ot_ode)
+
+                gens[:, z, :, :, :] = self.compute_pred_x0(step, xt, self.net(xt, step, cond=cond),
+                                                           clip_denoise=opt.clip_denoise)
+
+            psnr_1 = peak_signal_noise_ratio(gens[:, 0, :, :, :], img_clean)
+            psnr_8 = peak_signal_noise_ratio(torch.mean(gens, dim=1), img_clean)
+
         log.info("Collecting tensors ...")
+        psnr_1      = all_cat_cpu(opt, log, psnr_1).mean()
+        psnr_8      = all_cat_cpu(opt, log, psnr_8).mean()
         img_clean   = all_cat_cpu(opt, log, img_clean)
         img_corrupt = all_cat_cpu(opt, log, img_corrupt)
         y           = all_cat_cpu(opt, log, y)
@@ -289,11 +305,8 @@ class Runner(object):
         def log_image(tag, img, nrow=10):
             self.writer.add_image(it, tag, tu.make_grid((img+1)/2, nrow=nrow)) # [1,1] -> [0,1]
 
-        psnr_1 = peak_signal_noise_ratio(xs[:, 0, 0, ...], img_clean).cpu().numpy()
-        psnr_8 = peak_signal_noise_ratio(torch.mean(xs[:, :, 0, ...], dim=1), img_clean).cpu().numpy()
-
         self.writer.add_scalar(it, 'psnr_1', psnr_1)
-        self.writer.add_scalar(it, 'psnr_4', psnr_8)
+        self.writer.add_scalar(it, 'psnr_8', psnr_8)
 
         psnr_diff = (psnr_1 + expected_gain) - psnr_8
 
