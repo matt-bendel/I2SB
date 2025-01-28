@@ -288,8 +288,8 @@ class Runner(object):
             psnr_8 = peak_signal_noise_ratio(torch.mean(gens, dim=1), img_clean)
 
         log.info("Collecting tensors ...")
-        psnr_1      = all_cat_cpu(opt, log, psnr_1).mean()
-        psnr_8      = all_cat_cpu(opt, log, psnr_8).mean()
+        psnr_1      = all_cat_cpu(opt, log, psnr_1.unsqueeze(0)).mean()
+        psnr_8      = all_cat_cpu(opt, log, psnr_8.unsqueeze(0)).mean()
         img_clean   = all_cat_cpu(opt, log, img_clean)
         img_corrupt = all_cat_cpu(opt, log, img_corrupt)
         y           = all_cat_cpu(opt, log, y)
