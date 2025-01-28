@@ -170,14 +170,30 @@ class Runner(object):
                 step = torch.randint(0, opt.interval, (x0.shape[0],))
 
                 gens = torch.zeros_like(x0).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(x0.device)
-                for z in range(2):
-                    xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
+                xt1 = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
+                xt2 = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
 
-                    gens[:, z, :, :, :] = self.compute_pred_x0(step, xt, net(xt, step, cond=cond), clip_denoise=opt.clip_denoise)
+                pred1 = net(xt1, step, cond=cond)
+                label1 = self.compute_label(step, x0, xt2)
+
+                pred2 = net(xt1, step, cond=cond)
+                label2 = self.compute_label(step, x0, xt2)
+
+                gens[:, 0, :, :, :] = self.compute_pred_x0(step, xt1, pred1, clip_denoise=opt.clip_denoise)
+                gens[:, 1, :, :, :] = self.compute_pred_x0(step, xt2, pred2, clip_denoise=opt.clip_denoise)
 
                 avg_recon = torch.mean(gens, dim=1)
-                loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
-            2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean()
+
+                if mask is not None:
+                    pred1 = mask * pred1
+                    label1 = mask * label1
+                    pred2 = mask * pred2
+                    label2 = mask * label2
+
+                loss = (F.mse_loss(pred1, label1) + F.mse_loss(pred2, label2)) / 2 # Score match loss on residual
+                loss += F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
+                    2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
+
                 loss.backward()
 
             optimizer.step()
