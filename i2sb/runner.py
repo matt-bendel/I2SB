@@ -174,9 +174,9 @@ class Runner(object):
                 xt2 = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
 
                 pred1 = net(xt1, step, cond=cond)
-                label1 = self.compute_label(step, x0, xt2)
+                label1 = self.compute_label(step, x0, xt1)
 
-                pred2 = net(xt1, step, cond=cond)
+                pred2 = net(xt2, step, cond=cond)
                 label2 = self.compute_label(step, x0, xt2)
 
                 gens[:, 0, :, :, :] = self.compute_pred_x0(step, xt1, pred1, clip_denoise=opt.clip_denoise)
