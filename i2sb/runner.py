@@ -190,7 +190,7 @@ class Runner(object):
                     pred2 = mask * pred2
                     label2 = mask * label2
 
-                mse_loss = (F.mse_loss(pred1, label1) + F.mse_loss(pred2, label2)) / 2 # Score match loss on residual
+                mse_loss = 10 * (F.mse_loss(pred1, label1) + F.mse_loss(pred2, label2)) / 2 # Score match loss on residual
                 rcgan_loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
                     2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
 
