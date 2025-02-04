@@ -171,28 +171,36 @@ class Runner(object):
 
                 gens = torch.zeros_like(x0).unsqueeze(1).repeat(1, 2, 1, 1, 1).to(x0.device)
                 xt1 = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
-                xt2 = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
-
                 pred1 = net(xt1, step, cond=cond)
                 label1 = self.compute_label(step, x0, xt1)
 
-                pred2 = net(xt2, step, cond=cond)
-                label2 = self.compute_label(step, x0, xt2)
+                if opt.reg:
+                    xt2 = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
+                    pred2 = net(xt2, step, cond=cond)
+                    label2 = self.compute_label(step, x0, xt2)
 
-                gens[:, 0, :, :, :] = self.compute_pred_x0(step, xt1, pred1, clip_denoise=opt.clip_denoise)
-                gens[:, 1, :, :, :] = self.compute_pred_x0(step, xt2, pred2, clip_denoise=opt.clip_denoise)
+                    gens[:, 0, :, :, :] = self.compute_pred_x0(step, xt1, pred1, clip_denoise=opt.clip_denoise)
+                    gens[:, 1, :, :, :] = self.compute_pred_x0(step, xt2, pred2, clip_denoise=opt.clip_denoise)
 
-                avg_recon = torch.mean(gens, dim=1)
+                    avg_recon = torch.mean(gens, dim=1)
 
                 if mask is not None:
                     pred1 = mask * pred1
                     label1 = mask * label1
-                    pred2 = mask * pred2
-                    label2 = mask * label2
 
-                mse_loss = 10 * (F.mse_loss(pred1, label1) + F.mse_loss(pred2, label2)) / 2 # Score match loss on residual
-                rcgan_loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
-                    2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
+                    if opt.reg:
+                        pred2 = mask * pred2
+                        label2 = mask * label2
+
+                # uniform weight, biased toward t
+                mse_loss_weight = 0.
+                mse_loss = F.mse_loss(pred1, label1)
+                if opt.reg:
+                    mse_loss = (mse_loss + + F.mse_loss(pred2, label2)) / 2# Score match loss on residual
+                    rcgan_loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
+                        2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
+                else:
+                    rcgan_loss = torch.tensor(0).to(mse_loss.device)
 
                 loss = mse_loss + rcgan_loss
 

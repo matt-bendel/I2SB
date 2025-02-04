@@ -67,11 +67,12 @@ def create_training_options():
     # optional configs for conditional network
     parser.add_argument("--cond-x1",        action="store_true",             help="conditional the network on degraded images")
     parser.add_argument("--add-x1-noise",   action="store_true",             help="add noise to conditional network")
+    parser.add_argument("--reg",   action="store_true",             help="apply regularization during training")
 
     # --------------- optimizer and loss ---------------
     parser.add_argument("--batch-size",     type=int,   default=64)
     parser.add_argument("--microbatch",     type=int,   default=2,           help="accumulate gradient over microbatch until full batch-size")
-    parser.add_argument("--num-itr",        type=int,   default=1000000,     help="training iteration")
+    parser.add_argument("--num-itr",        type=int,   default=20000,     help="training iteration")
     parser.add_argument("--lr",             type=float, default=5e-5,        help="learning rate")
     parser.add_argument("--lr-gamma",       type=float, default=0.99,        help="learning rate decay ratio")
     parser.add_argument("--lr-step",        type=int,   default=1000,        help="learning rate decay step size")
