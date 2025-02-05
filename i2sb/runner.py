@@ -193,12 +193,14 @@ class Runner(object):
                         label2 = mask * label2
 
                 # uniform weight, biased toward t
-                mse_loss_weight = 0.
-                mse_loss = F.mse_loss(pred1, label1)
+                mse_loss = F.mse_loss(pred1, label1, reduction='mean' if opt.reg else 'none')
+                rcgan_weight = 1
                 if opt.reg:
-                    mse_loss = (mse_loss + + F.mse_loss(pred2, label2)) / 2# Score match loss on residual
+                    mse_loss_weight = self.diffusion.get_std_fwd(step)
+                    mse_loss = mse_loss_weight * (mse_loss + F.mse_loss(pred2, label2, reduction='none')) / 2# Score match loss on residual
                     rcgan_loss = F.l1_loss(avg_recon, x0) - self.beta_std * np.sqrt(
                         2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
+                    rcgan_loss = rcgan_weight * rcgan_loss / mse_loss_weight
                 else:
                     rcgan_loss = torch.tensor(0).to(mse_loss.device)
 
