@@ -197,13 +197,11 @@ class Runner(object):
                 rcgan_weight = 1
                 if opt.reg:
                     mse_loss_weight = self.diffusion.get_std_fwd(step)
-                    print(mse_loss_weight.shape)
-                    print(mse_loss.shape)
-                    exit()
-                    mse_loss = mse_loss_weight * (mse_loss + F.mse_loss(pred2, label2, reduction='none')) / 2# Score match loss on residual
-                    rcgan_loss = F.l1_loss(avg_recon, x0, reduction='none') - self.beta_std * np.sqrt(
-                        2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean() # L1 + STD Reward on reconstructions
+                    mse_loss = mse_loss_weight * (mse_loss + F.mse_loss(pred2, label2, reduction='none')).mean(dim=(1,2,3)) / 2# Score match loss on residual
+                    rcgan_loss = F.l1_loss(avg_recon, x0, reduction='none').mean(dim=(1,2,3)) - self.beta_std * np.sqrt(
+                        2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean(dim=(1,2,3)) # L1 + STD Reward on reconstructions
                     rcgan_loss = rcgan_weight * rcgan_loss / mse_loss_weight
+                    rcgan_loss = rcgan_loss.mean()
                 else:
                     rcgan_loss = torch.tensor(0).to(mse_loss.device)
 
