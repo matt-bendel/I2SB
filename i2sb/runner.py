@@ -194,7 +194,7 @@ class Runner(object):
 
                 # uniform weight, biased toward t
                 mse_loss = F.mse_loss(pred1, label1, reduction='mean' if not opt.reg else 'none')
-                rcgan_weight = 1e-1
+                rcgan_weight = 5e-2
                 if opt.reg:
                     mse_loss_weight = self.diffusion.get_std_fwd(step)
                     mse_loss = mse_loss_weight * (mse_loss + F.mse_loss(pred2, label2, reduction='none')).mean(dim=(1,2,3)) / 2# Score match loss on residual
@@ -347,9 +347,11 @@ class Runner(object):
 
         log.info("Logging images ...")
         img_recon = xs[:, 0, 0, ...]
+        img_error = (img_recon - img_clean).abs()
         log_image("image/clean",   img_clean)
         log_image("image/corrupt", img_corrupt)
         log_image("image/recon",   img_recon)
+        log_image("image/err",   img_error)
         log_image("debug/pred_clean_traj", pred_x0s.reshape(-1, *xdim), nrow=len_t)
         log_image("debug/recon_traj",      xs.reshape(-1, *xdim),      nrow=len_t)
 
