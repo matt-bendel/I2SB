@@ -201,7 +201,7 @@ class Runner(object):
                     mse_loss = mse_loss.mean()
                     rcgan_loss = F.l1_loss(avg_recon, x0, reduction='none').mean(dim=(1,2,3)) - self.beta_std * np.sqrt(
                         2 / (np.pi * 2 * (2 + 1))) * torch.std(gens, dim=1).mean(dim=(1,2,3)) # L1 + STD Reward on reconstructions
-                    rcgan_loss = rcgan_weight * rcgan_loss #/ (mse_loss_weight ** 2)
+                    rcgan_loss = rcgan_weight * rcgan_loss / mse_loss_weight
                     rcgan_loss = rcgan_loss.mean()
                 else:
                     rcgan_loss = torch.tensor(0).to(mse_loss.device)

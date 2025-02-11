@@ -54,7 +54,7 @@ def create_training_options():
     # parser.add_argument("--amp",            action="store_true")
 
     # --------------- SB model ---------------
-    parser.add_argument("--image-size",     type=int,   default=256)
+    parser.add_argument("--image-size",     type=int,   default=128)
     parser.add_argument("--corrupt",        type=str,   default=None,        help="restoration task")
     parser.add_argument("--t0",             type=float, default=1e-4,        help="sigma start time in network parametrization")
     parser.add_argument("--T",              type=float, default=1.,          help="sigma end time in network parametrization")
