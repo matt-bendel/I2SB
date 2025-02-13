@@ -94,7 +94,7 @@ class Diffusion():
         for prev_step, step in pair_steps:
             assert prev_step < step, f"{prev_step=}, {step=}"
 
-            pred_x0 = pred_x0_fn(xt, step)
+            pred_x0, _ = pred_x0_fn(xt, step)
             xt = self.p_posterior(prev_step, step, xt, pred_x0, ot_ode=ot_ode)
 
             if mask is not None:
@@ -111,3 +111,36 @@ class Diffusion():
 
         stack_bwd_traj = lambda z: torch.flip(torch.stack(z, dim=1), dims=(1,))
         return stack_bwd_traj(xs), stack_bwd_traj(pred_x0s)
+
+    # def ddpm_sampling_return_eps(self, steps, pred_x0_fn, x1, compute_label, mask=None, ot_ode=False, log_steps=None, verbose=True):
+    #     xt = x1.detach().to(self.device)
+    #
+    #     preds = []
+    #     labels = []
+    #
+    #     log_steps = log_steps or steps
+    #     assert steps[0] == log_steps[0] == 0
+    #
+    #     steps = steps[::-1]
+    #
+    #     pair_steps = zip(steps[1:], steps[:-1])
+    #     pair_steps = tqdm(pair_steps, desc='DDPM sampling', total=len(steps)-1) if verbose else pair_steps
+    #     for prev_step, step in pair_steps:
+    #         assert prev_step < step, f"{prev_step=}, {step=}"
+    #
+    #         pred_x0, pred = pred_x0_fn(xt, step)
+    #
+    #         label = compute_label(step, x0, xt1)
+    #
+    #         xt = self.p_posterior(prev_step, step, xt, pred_x0, ot_ode=ot_ode)
+    #
+    #         if mask is not None:
+    #             xt_true = x1
+    #             if not ot_ode:
+    #                 _prev_step = torch.full((xt.shape[0],), prev_step, device=self.device, dtype=torch.long)
+    #                 std_sb = unsqueeze_xdim(self.std_sb[_prev_step], xdim=x1.shape[1:])
+    #                 xt_true = xt_true + std_sb * torch.randn_like(xt_true)
+    #             xt = (1. - mask) * xt_true + mask * xt
+    #
+    #     stack_bwd_traj = lambda z: torch.flip(torch.stack(z, dim=1), dims=(1,))
+    #     return stack_bwd_traj(xs), stack_bwd_traj(pred_x0s)
