@@ -170,6 +170,7 @@ class Runner(object):
 
                 # ===== compute loss =====
                 step = opt.interval - 1
+                step = torch.tensor(step).unsqueeze(0).repeat(x0.shape[0]).to(x0.device)
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                 pred = net(xt, step, cond=cond)
                 label = self.compute_label(step, x0, xt)
@@ -183,6 +184,8 @@ class Runner(object):
                 loss = F.mse_loss(pred, label)
 
                 for prev_step in reversed(range(opt.interval - 1)):
+                    prev_step = torch.tensor(step).unsqueeze(0).repeat(x0.shape[0]).to(x0.device)
+
                     xt = self.diffusion.p_posterior(prev_step, step, xt, pred_x0, ot_ode=opt.ot_ode)
                     step = prev_step
 
