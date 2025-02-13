@@ -207,7 +207,7 @@ class Runner(object):
             if sched is not None: sched.step()
 
             # -------- logging --------
-            log.info("train_it {}/{} | lr:{} | mse_loss:{} | rcgan_loss:{}".format(
+            log.info("train_it {}/{} | lr:{} | mse_loss:{}".format(
                 1+it,
                 opt.num_itr,
                 "{:.2e}".format(optimizer.param_groups[0]['lr']),
