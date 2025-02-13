@@ -211,10 +211,10 @@ class Runner(object):
                 1+it,
                 opt.num_itr,
                 "{:.2e}".format(optimizer.param_groups[0]['lr']),
-                "{:+.4f}".format(mse_loss.item()),
+                "{:+.4f}".format(loss.item()),
             ))
             if it % 10 == 0:
-                self.writer.add_scalar(it, 'mse_loss', mse_loss.detach())
+                self.writer.add_scalar(it, 'mse_loss_unrolled', loss.detach())
 
             if it % 5000 == 0:
                 if opt.global_rank == 0:
