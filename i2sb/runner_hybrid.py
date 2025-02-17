@@ -166,9 +166,23 @@ class Runner(object):
                 # ===== sample boundary pair =====
                 x0, x1, mask, y, cond = self.sample_batch(opt, train_loader, corrupt_method)
 
-                N_unroll = 10 - 1
+                N_unroll = 20 - 1
 
                 step = torch.randint(0, opt.interval, (x0.shape[0],))
+
+                step_list = step.cpu().numpy()
+                unroll_steps = torch.zeros_like(step).unsqueeze(1).repeat(1, N_unroll)
+                for l, step_int in enumerate(step_list):
+                    if step_int <= N_unroll:
+                        step[l] = N_unroll + 1
+                        unroll_steps[:, l] = np.arange(N_unroll + 1)
+                    else:
+                        idx = np.round(np.linspace(0, step_int, N_unroll)).astype(int)
+                        print(step_int)
+                        print(len(idx))
+                        exit()
+                        subsample_steps = np.arange(step_int)[idx]
+
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                 pred = net(xt, step, cond=cond)
                 label = self.compute_label(step, x0, xt)
@@ -181,12 +195,7 @@ class Runner(object):
 
                 pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
 
-                step_int = step[0].cpu().numpy()
-                if step_int <= N_unroll:
-                    subsample_steps = np.arange(step_int)
-                else:
-                    idx = np.round(np.linspace(0, step_int, N_unroll)).astype(int)
-                    subsample_steps = np.arange(step_int)[idx]
+
 
                 prev_check = step_int
 
