@@ -174,8 +174,8 @@ class Runner(object):
                 unroll_steps = torch.zeros_like(step).unsqueeze(1).repeat(1, N_unroll)
                 for l, step_int in enumerate(step_list):
                     if step_int <= N_unroll:
-                        step[l] = N_unroll + 1
-                        unroll_steps[l, :] = torch.tensor(np.arange(N_unroll + 1)).to(x0.device)
+                        step[l] = N_unroll
+                        unroll_steps[l, :] = torch.tensor(np.arange(N_unroll)).to(x0.device)
                     else:
                         idx = np.round(np.linspace(0, step_int - 1, N_unroll)).astype(int)
                         unroll_steps[l, :] = torch.tensor(np.arange(step_int)[idx]).to(x0.device)
