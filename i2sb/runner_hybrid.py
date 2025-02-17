@@ -166,7 +166,7 @@ class Runner(object):
                 # ===== sample boundary pair =====
                 x0, x1, mask, y, cond = self.sample_batch(opt, train_loader, corrupt_method)
 
-                N_unroll = 20 - 1
+                N_unroll = 10 - 1
 
                 step = torch.randint(0, opt.interval, (x0.shape[0],))
 
@@ -210,7 +210,7 @@ class Runner(object):
 
                     pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
 
-                    L_unroll += 1e-2 * F.mse_loss(pred, label) / N_unroll
+                    L_unroll += 1e-1 * F.mse_loss(pred, label) / N_unroll
 
                 loss = L_ddb + L_unroll
                 loss.backward()
