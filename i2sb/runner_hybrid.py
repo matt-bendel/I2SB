@@ -180,8 +180,8 @@ class Runner(object):
                         idx = np.round(np.linspace(0, step_int, N_unroll)).astype(int)
                         print(step_int)
                         print(len(idx))
-                        exit()
                         subsample_steps = np.arange(step_int)[idx]
+                        exit()
 
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                 pred = net(xt, step, cond=cond)
@@ -194,16 +194,13 @@ class Runner(object):
                 L_ddb = F.mse_loss(pred, label)
 
                 pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
-
-
-
                 prev_check = step_int
 
                 L_unroll = 0
 
                 print(len(subsample_steps))
 
-                for prev_step in subsample_steps[::-1]:
+                for l in reversed(range(N_unroll)):
                     if prev_step == prev_check:
                         continue
 
