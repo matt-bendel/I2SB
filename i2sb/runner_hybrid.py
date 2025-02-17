@@ -166,7 +166,7 @@ class Runner(object):
                 # ===== sample boundary pair =====
                 x0, x1, mask, y, cond = self.sample_batch(opt, train_loader, corrupt_method)
 
-                N_unroll = 20 - 1
+                N_unroll = 10 - 1
 
                 step = torch.randint(0, opt.interval, (x0.shape[0],))
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
