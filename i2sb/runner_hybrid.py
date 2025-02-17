@@ -211,7 +211,7 @@ class Runner(object):
 
                     pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
 
-                    L_unroll += F.mse_loss(pred, label) / N_unroll
+                    L_unroll += 1e-2 * F.mse_loss(pred, label) / N_unroll
 
                 loss = L_ddb + L_unroll
                 loss.backward()
