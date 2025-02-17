@@ -78,6 +78,20 @@ class Diffusion():
 
         return xt_prev
 
+    def p_posterior_variable_n(self, nprev, n, x_n, x0, ot_ode=False):
+        """ Sample p(x_{nprev} | x_n, x_0), i.e. eq 4"""
+        std_n     = self.get_std_fwd(n, xdim=x0.shape[1:])
+        std_nprev = self.get_std_fwd(nprev, xdim=x0.shape[1:])
+        std_delta = (std_n**2 - std_nprev**2).sqrt()
+
+        mu_x0, mu_xn, var = compute_gaussian_product_coef(std_nprev, std_delta)
+
+        xt_prev = mu_x0 * x0 + mu_xn * x_n
+        if not ot_ode:
+            xt_prev = xt_prev + var.sqrt() * torch.randn_like(xt_prev)
+
+        return xt_prev
+
     def ddpm_sampling(self, steps, pred_x0_fn, x1, mask=None, ot_ode=False, log_steps=None, verbose=True):
         xt = x1.detach().to(self.device)
 

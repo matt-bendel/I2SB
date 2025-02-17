@@ -177,11 +177,8 @@ class Runner(object):
                         step[l] = N_unroll + 1
                         unroll_steps[:, l] = np.arange(N_unroll + 1)
                     else:
-                        idx = np.round(np.linspace(0, step_int, N_unroll)).astype(int)
-                        print(step_int)
-                        print(len(idx))
-                        subsample_steps = np.arange(step_int)[idx]
-                        exit()
+                        idx = np.round(np.linspace(0, step_int - 1, N_unroll)).astype(int)
+                        unroll_steps[:, l] = np.arange(step_int)[idx]
 
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                 pred = net(xt, step, cond=cond)
@@ -194,24 +191,18 @@ class Runner(object):
                 L_ddb = F.mse_loss(pred, label)
 
                 pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
-                prev_check = step_int
 
                 L_unroll = 0
 
-                print(len(subsample_steps))
-
                 for l in reversed(range(N_unroll)):
-                    if prev_step == prev_check:
-                        continue
+                    prev_step = unroll_steps[:, l]
 
-                    prev_check = prev_step
-                    prev_step = torch.tensor(prev_step).unsqueeze(0).repeat(x0.shape[0]).to(x0.device)
-
-                    xt = self.diffusion.p_posterior(prev_step[0].cpu().numpy(), step[0].cpu().numpy(), xt, pred_x0, ot_ode=opt.ot_ode)
-                    step = prev_step
+                    xt = self.diffusion.p_posterior_variable_n(prev_step, step, xt, pred_x0, ot_ode=opt.ot_ode)
 
                     pred = net(xt, step, cond=cond)
                     label = self.compute_label(step, x0, xt)
+
+                    step = prev_step
 
                     if mask is not None:
                         pred = mask * pred
@@ -219,7 +210,7 @@ class Runner(object):
 
                     pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
 
-                    L_unroll += 1e-2 * F.mse_loss(pred, label) / len(subsample_steps)
+                    L_unroll += 1e-2 * F.mse_loss(pred, label) / N_unroll
 
                 loss = L_ddb + L_unroll
                 loss.backward()
