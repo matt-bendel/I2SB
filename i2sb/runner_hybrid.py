@@ -186,11 +186,13 @@ class Runner(object):
                     subsample_steps = np.arange(step_int)
                 else:
                     idx = np.round(np.linspace(0, step_int, N_unroll)).astype(int)
-                    subsample_steps = np.arange(opt.interval)[idx]
+                    subsample_steps = np.arange(step_int)[idx]
 
                 prev_check = step_int
 
                 L_unroll = 0
+
+                print(len(subsample_steps))
 
                 for prev_step in subsample_steps[::-1]:
                     if prev_step == prev_check:
@@ -211,7 +213,7 @@ class Runner(object):
 
                     pred_x0 = self.compute_pred_x0(step, xt, pred, clip_denoise=opt.clip_denoise)
 
-                    L_unroll += 1e-2 * F.mse_loss(pred, label) / N_unroll
+                    L_unroll += 1e-2 * F.mse_loss(pred, label) / len(subsample_steps)
 
                 loss = L_ddb + L_unroll
                 loss.backward()
