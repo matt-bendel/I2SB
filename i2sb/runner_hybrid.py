@@ -198,11 +198,10 @@ class Runner(object):
                     prev_step = unroll_steps[:, l]
 
                     xt = self.diffusion.p_posterior_variable_n(prev_step, step, xt, pred_x0, ot_ode=opt.ot_ode)
+                    step = prev_step
 
                     pred = net(xt, step, cond=cond)
                     label = self.compute_label(step, x0, xt)
-
-                    step = prev_step
 
                     if mask is not None:
                         pred = mask * pred
