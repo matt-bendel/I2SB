@@ -178,7 +178,7 @@ class Runner(object):
                         unroll_steps[:, l] = np.arange(N_unroll + 1)
                     else:
                         idx = np.round(np.linspace(0, step_int - 1, N_unroll)).astype(int)
-                        unroll_steps[:, l] = np.arange(step_int)[idx]
+                        unroll_steps[:, l] = torch.tensor(np.arange(step_int)[idx]).to(x0.device)
 
                 xt = self.diffusion.q_sample(step, x0, x1, ot_ode=opt.ot_ode)
                 pred = net(xt, step, cond=cond)
