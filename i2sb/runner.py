@@ -279,6 +279,9 @@ class Runner(object):
             )
 
         b, *xdim = x1.shape
+        print(xs.shape)
+        print(pred_x0.shape)
+        print((b, log_count, *xdim))
         assert xs.shape == pred_x0.shape == (b, log_count, *xdim)
 
         return xs, pred_x0
