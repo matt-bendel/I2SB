@@ -110,6 +110,8 @@ class Runner(object):
         std_fwd = self.diffusion.get_std_fwd(step, xdim=xt.shape[1:])
         pred_x0 = xt - std_fwd * net_out
         if clip_denoise: pred_x0.clamp_(-1., 1.)
+        print(pred_x0.shape)
+        exit()
         return pred_x0
 
     def sample_batch(self, opt, loader, corrupt_method):
@@ -279,9 +281,6 @@ class Runner(object):
             )
 
         b, *xdim = x1.shape
-        print(xs.shape)
-        print(pred_x0.shape)
-        print((b, log_count, *xdim))
         assert xs.shape == pred_x0.shape == (b, log_count, *xdim)
 
         return xs, pred_x0
