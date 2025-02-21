@@ -120,6 +120,7 @@ class Diffusion():
                 xt = (1. - mask) * xt_true + mask * xt
 
             if prev_step in log_steps:
+                print(pred_x0.shape)
                 pred_x0s.append(pred_x0.detach().cpu())
                 xs.append(xt.detach().cpu())
 
