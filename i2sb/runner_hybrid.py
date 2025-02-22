@@ -276,7 +276,7 @@ class Runner(object):
             def pred_x0_fn(xt, step):
                 step = torch.full((xt.shape[0],), step, device=opt.device, dtype=torch.long)
                 out = self.net(xt, step, cond=cond)
-                return self.compute_pred_x0(step, xt, out, clip_denoise=clip_denoise), out
+                return self.compute_pred_x0(step, xt, out, clip_denoise=clip_denoise)
 
             xs, pred_x0 = self.diffusion.ddpm_sampling(
                 steps, pred_x0_fn, x1, mask=mask, ot_ode=opt.ot_ode, log_steps=log_steps, verbose=verbose,
