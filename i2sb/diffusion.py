@@ -107,7 +107,7 @@ class Diffusion():
         pair_steps = tqdm(pair_steps, desc='DDPM sampling', total=len(steps)-1) if verbose else pair_steps
         for prev_step, step in pair_steps:
             assert prev_step < step, f"{prev_step=}, {step=}"
-            pred_x0 = pred_x0_fn(xt, step)
+            pred_x0, _ = pred_x0_fn(xt, step)
             xt = self.p_posterior(prev_step, step, xt, pred_x0, ot_ode=ot_ode)
 
             if mask is not None:
