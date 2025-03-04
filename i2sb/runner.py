@@ -194,7 +194,7 @@ class Runner(object):
 
                 # uniform weight, biased toward t
                 mse_loss = F.mse_loss(pred1, label1, reduction='mean' if not opt.reg else 'none')
-                rcgan_weight = 1e-3
+                rcgan_weight = 1e-4
                 if opt.reg:
                     mse_loss_weight = self.diffusion.get_std_fwd(step)
                     mse_loss = (mse_loss + F.mse_loss(pred2, label2, reduction='none')).mean(dim=(1,2,3)) / 2# Score match loss on residual
